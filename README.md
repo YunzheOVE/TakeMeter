@@ -128,17 +128,16 @@ The baseline is strong on `hot_take` (F1 0.86) and `reaction` (F1 0.75) but cons
 
 Fine-tuning made the model worse by 26.67 percentage points. The baseline is the stronger classifier for this task.
 
-### Per-Class Metrics (Fine-Tuned Model)
+### Per-Class Metrics — Both Models
 
-Derived from the confusion matrix below:
+| Label | Baseline Precision | Baseline Recall | Baseline F1 | Fine-Tuned Precision | Fine-Tuned Recall | Fine-Tuned F1 |
+|---|---|---|---|---|---|---|
+| `analysis` | 1.00 | 0.50 | 0.67 | 0.50 | 1.00 | 0.67 |
+| `hot_take` | 0.90 | 0.82 | **0.86** | 0.40 | 0.18 | 0.25 |
+| `reaction` | 0.60 | 1.00 | **0.75** | 0.60 | 0.33 | 0.43 |
+| **macro avg** | 0.83 | 0.77 | **0.76** | 0.50 | 0.51 | 0.45 |
 
-| Label | Precision | Recall | F1 |
-|---|---|---|---|
-| `analysis` | 0.50 | 1.00 | 0.67 |
-| `hot_take` | 0.40 | 0.18 | 0.25 |
-| `reaction` | 0.60 | 0.33 | 0.43 |
-
-None of the labels reached the success criterion of F1 ≥ 0.70. Only `analysis` came close, but only because the model predicted `analysis` for almost everything (100% recall = it never missed a true `analysis` example, but that is because it called most things `analysis`).
+The baseline outperforms the fine-tuned model on every label except `analysis` recall (where fine-tuned hits 1.00 by over-predicting the label). None of the fine-tuned model's labels reached the success criterion of F1 ≥ 0.70.
 
 ### Confusion Matrix (Fine-Tuned Model)
 
