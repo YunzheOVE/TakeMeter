@@ -77,9 +77,43 @@ No label exceeds 70% of the dataset. Distribution is within acceptable range for
 
 **Model:** Groq `llama-3.3-70b-versatile`, zero-shot (no task-specific training)
 
-**Prompt approach:** The system prompt named the community, defined all three labels in plain language matching `planning.md`, gave one example post per label, and instructed the model to output only the label name — nothing else. This kept responses parseable without post-processing.
+**Prompt used:**
+
+```
+You are classifying Reddit comments from the CS2 competitive community (r/GlobalOffensive).
+Each comment was posted in a match thread or post-match discussion during the IEM Cologne 2026 Major.
+Assign each comment to exactly one of the following categories.
+
+analysis: The comment supports a claim using specific, verifiable evidence — player ratings, round statistics, map win rates, tactical observations tied to specific rounds, or historical comparisons with numbers.
+Example: "karrigan has now performed 8 upsets in CS2 major playoffs in 4/5 majors: Copenhagen: Spirit and Vitality / Shanghai: Vitality and G2 / Budapest: MOUZ and Na'Vi / Cologne: Vitality and Spirit."
+
+hot_take: A bold, confident opinion stated as fact without supporting evidence. The claim might be true, but the comment asserts rather than argues — it tells you what to think rather than showing why.
+Example: "Falcons are massively overrated — they only got this far because the bracket was soft."
+
+reaction: An immediate emotional response to a match moment or result, with little to no argument. The comment expresses a feeling in real time rather than making a claim about a team.
+Example: "I died and came back to life like twenty different times this series"
+
+Respond with ONLY the label name — one word, lowercase, exactly as written below.
+Do not explain your reasoning. Do not add punctuation.
+
+Valid labels:
+analysis
+hot_take
+reaction
+```
 
 **Baseline accuracy: 76.67%** (23/30 test examples correct)
+
+**Per-class metrics (baseline):**
+
+| Label | Precision | Recall | F1 | Support |
+|---|---|---|---|---|
+| `analysis` | 1.00 | 0.50 | 0.67 | 10 |
+| `hot_take` | 0.90 | 0.82 | 0.86 | 11 |
+| `reaction` | 0.60 | 1.00 | 0.75 | 9 |
+| **macro avg** | 0.83 | 0.77 | 0.76 | 30 |
+
+The baseline is strong on `hot_take` (F1 0.86) and `reaction` (F1 0.75) but conservative on `analysis` — it never wrongly predicts `analysis` (precision 1.00) but misses half the real ones (recall 0.50).
 
 ---
 
@@ -153,7 +187,7 @@ This was labeled `reaction` because the primary content is emotional pride — t
 
 The core boundary the model failed to learn is the `analysis` vs. `hot_take` distinction. Both label types use the same vocabulary (player names, team names, match references), but `analysis` uses that vocabulary as evidence while `hot_take` uses it as decoration. Distinguishing these requires understanding whether a post is *arguing* or *asserting* — a semantic distinction that DistilBERT could not reliably extract from only 140 training examples.
 
-The baseline LLM (Llama-3.3-70b) has the language understanding depth to catch this distinction zero-shot, which explains why it outperformed the fine-tuned model by 27 percentage points.
+Notably, the two models fail in opposite directions on `analysis`. The baseline is *conservative* — it never wrongly predicts `analysis` (precision 1.00) but misses half the true positives (recall 0.50). The fine-tuned model goes the other way — it never misses a true `analysis` example (recall 1.00) but predicts `analysis` for most things (precision 0.50). Both approaches struggle with the same boundary, just with inverted errors. This confirms the `analysis` vs. `hot_take` distinction is genuinely hard to learn: the baseline has deep language understanding but is uncertain, while the fine-tuned model overfit to surface features and became overconfident.
 
 ---
 
